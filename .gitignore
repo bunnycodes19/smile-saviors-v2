@@ -1,0 +1,31 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+web_packages/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# IDE files, system cache, and logs
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.system_generated/
+*.log
+
+# Local environment variables
+.env
+.env.local
+.env.*.local
+
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
