@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../api';
+import { useAuth } from '../context/AuthContext';
 import { Users, Calendar, DollarSign, FileText } from 'lucide-react';
 
 interface StatData {
@@ -22,9 +23,17 @@ interface StatData {
 }
 
 export const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [data, setData] = useState<StatData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const getGreeting = () => {
+    const hr = new Date().getHours();
+    if (hr < 12) return 'Good morning';
+    if (hr < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   const fetchStats = async () => {
     try {
@@ -65,7 +74,12 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div>
-      <h1>Dashboard Overview</h1>
+      <div className="dashboard-hero">
+        <div className="hero-content">
+          <h1>{getGreeting()}, {user?.firstName || 'Staff'}!</h1>
+          <p>Welcome back to your workspace. Here is a summary of your clinic's performance and operations today.</p>
+        </div>
+      </div>
 
       {/* Stats Cards */}
       <div className="dashboard-grid">

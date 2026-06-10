@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { DRIZZLE_PROVIDER, NestDrizzleDatabase } from '../../../infrastructure/database/database.provider';
 import { IAuthRepository } from '../domain/auth.repository.interface';
 import { Tenant } from '../domain/tenant.entity';
@@ -83,5 +83,46 @@ export class AuthRepositoryImpl implements IAuthRepository {
     if (rows.length === 0) return null;
     const row = rows[0];
     return new Tenant(row.id, row.name, row.subdomain, row.createdAt, row.updatedAt);
+  }
+
+  async findUsersByTenant(tenantId: string): Promise<User[]> {
+    const rows = await this.db.select().from(schema.users).where(eq(schema.users.tenantId, tenantId));
+    return rows.map(
+      (row) =>
+        new User(
+          row.id,
+          row.tenantId,
+          row.email,
+          row.passwordHash,
+          row.firstName,
+          row.lastName,
+          row.role as 'ADMIN' | 'DENTIST' | 'RECEPTIONIST',
+          row.phone,
+          row.createdAt,
+          row.updatedAt,
+        ),
+    );
+  }
+
+  async findUsersByRoleAndTenant(tenantId: string, role: 'ADMIN' | 'DENTIST' | 'RECEPTIONIST'): Promise<User[]> {
+    const rows = await this.db
+      .select()
+      .from(schema.users)
+      .where(and(eq(schema.users.tenantId, tenantId), eq(schema.users.role, role)));
+    return rows.map(
+      (row) =>
+        new User(
+          row.id,
+          row.tenantId,
+          row.email,
+          row.passwordHash,
+          row.firstName,
+          row.lastName,
+          row.role as 'ADMIN' | 'DENTIST' | 'RECEPTIONIST',
+          row.phone,
+          row.createdAt,
+          row.updatedAt,
+        ),
+    );
   }
 }

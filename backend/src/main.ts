@@ -4,6 +4,8 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './core/filters/http-exception.filter';
 import { DRIZZLE_PROVIDER, NestDrizzleDatabase } from './infrastructure/database/database.provider';
 import { seedDatabase } from './infrastructure/database/seeder';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import * as path from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,12 +32,15 @@ async function bootstrap() {
   // Global filters
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Run database seeder if DB is empty
+  // Run database migrations & seeder if DB is empty
   const db = app.get<NestDrizzleDatabase>(DRIZZLE_PROVIDER);
   try {
+    console.log('Checking database migrations...');
+    await migrate(db, { migrationsFolder: path.resolve(process.cwd(), 'drizzle') });
+    console.log('Database migrations verified/applied.');
     await seedDatabase(db);
   } catch (error) {
-    console.error('Failed to seed database:', error);
+    console.error('Failed to run database migrations/seeder:', error);
   }
 
   const port = process.env.PORT || 3000;

@@ -1,5 +1,5 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { eq, and, gte, lte } from 'drizzle-orm';
+import { eq, and, gte, lte, lt, gt, ne } from 'drizzle-orm';
 import { DRIZZLE_PROVIDER, NestDrizzleDatabase } from '../../../infrastructure/database/database.provider';
 import { IAppointmentsRepository } from '../domain/appointments.repository.interface';
 import { Appointment } from '../domain/appointment.entity';
@@ -135,5 +135,33 @@ export class AppointmentsRepositoryImpl implements IAppointmentsRepository {
       row.createdAt,
       row.updatedAt,
     );
+  }
+
+  async checkOverlap(
+    tenantId: string,
+    dentistId: string,
+    startTime: Date,
+    endTime: Date,
+    excludeId?: string,
+  ): Promise<boolean> {
+    let whereClause = and(
+      eq(schema.appointments.tenantId, tenantId),
+      eq(schema.appointments.dentistId, dentistId),
+      ne(schema.appointments.status, 'CANCELLED'),
+      lt(schema.appointments.startTime, endTime),
+      gt(schema.appointments.endTime, startTime),
+    );
+
+    if (excludeId) {
+      whereClause = and(whereClause, ne(schema.appointments.id, excludeId)) as any;
+    }
+
+    const rows = await this.db
+      .select()
+      .from(schema.appointments)
+      .where(whereClause)
+      .limit(1);
+
+    return rows.length > 0;
   }
 }

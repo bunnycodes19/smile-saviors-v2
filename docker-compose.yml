@@ -10,6 +10,38 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d smile_saviors_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smile_saviors_backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/smile_saviors_db
+      JWT_SECRET: super-secret-smile-saviors-key-2026
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smile_saviors_frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
     restart: always
 
 volumes:

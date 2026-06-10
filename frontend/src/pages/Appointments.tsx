@@ -39,9 +39,9 @@ export const Appointments: React.FC = () => {
   const [endHour, setEndHour] = useState('10:00');
   const [reason, setReason] = useState('Routine Checkup');
   const [notes, setNotes] = useState('');
+  const [dentistId, setDentistId] = useState('');
 
-  // Demonstration Dentist ID (seeded Dr. Arthur Dent)
-  // In a full application, this is queried dynamically, but we can query it or fallback safely.
+  // Dentists list state
   const [dentists, setDentists] = useState<any[]>([]);
 
   const fetchData = async () => {
@@ -52,19 +52,14 @@ export const Appointments: React.FC = () => {
       const pts = await apiRequest('/patients');
       setPatients(pts);
 
-      // Search for dentists in seeded clinic
-      // Since seed contains dentist@smile.com, we can grab it or we can fallback.
-      // Fetching is ideal, let's look for dentist:
-      // In this demo, we'll auto-extract the dentist's ID from existing appointments
-      // or set a default.
-      if (appts.length > 0) {
-        const uniqueDentists = Array.from(
-          new Map(appts.map((item: any) => [item.dentistId, { id: item.dentistId, name: `Dr. ${item.dentistFirstName} ${item.dentistLastName}` }])).values()
-        );
-        setDentists(uniqueDentists);
-        if (uniqueDentists.length > 0) {
-          // default dentist
-        }
+      const dentistsList = await apiRequest('/auth/staff/dentists');
+      const mappedDentists = dentistsList.map((d: any) => ({
+        id: d.id,
+        name: `Dr. ${d.firstName} ${d.lastName}`
+      }));
+      setDentists(mappedDentists);
+      if (mappedDentists.length > 0) {
+        setDentistId((prev) => prev || mappedDentists[0].id);
       }
     } catch (err) {
       console.error(err);
@@ -85,15 +80,8 @@ export const Appointments: React.FC = () => {
     const startTimeStr = `${bookingDate}T${startHour}:00`;
     const endTimeStr = `${bookingDate}T${endHour}:00`;
 
-    // Try to find default dentist ID
-    // If no dentist mapped yet, use a standard UUID or placeholder.
-    let dentistId = '';
-    if (dentists.length > 0) {
-      dentistId = dentists[0].id;
-    } else if (appointments.length > 0) {
-      dentistId = appointments[0].dentistId;
-    } else {
-      setError('Please ensure a dentist is registered in the clinic first.');
+    if (!dentistId) {
+      setError('Please select a dentist for this appointment.');
       return;
     }
 
@@ -135,6 +123,11 @@ export const Appointments: React.FC = () => {
     setPatientId('');
     setReason('Routine Checkup');
     setNotes('');
+    if (dentists.length > 0) {
+      setDentistId(dentists[0].id);
+    } else {
+      setDentistId('');
+    }
   };
 
   // Convert Hour string to slot index for scheduler positioning (8:00 AM is index 0)
@@ -320,6 +313,18 @@ export const Appointments: React.FC = () => {
                   {patients.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.firstName} {p.lastName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Select Dentist</label>
+                <select className="form-input" value={dentistId} onChange={(e) => setDentistId(e.target.value)} required>
+                  <option value="">-- Choose Dentist --</option>
+                  {dentists.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
                     </option>
                   ))}
                 </select>

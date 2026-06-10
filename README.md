@@ -24,56 +24,97 @@ Ensure you have the following installed on your machine:
 
 ---
 
-## End-to-End Running Guide
+## Running the Application
 
-Follow these steps to run the application locally:
+There are two ways to run the application locally: using Docker Compose (simplest, production-like), or running services individually (ideal for development).
 
-### Step 1: Start the Database Container
+### Option A: Using Docker Compose (Single-Command Run)
+
+This option boots the PostgreSQL database, NestJS API, and React frontend under an Nginx reverse-proxy on port `80`.
+
+1. Ensure **Docker Desktop** is running.
+2. In the root directory, run:
+   ```bash
+   docker compose up --build -d
+   ```
+3. Open your browser and navigate to `http://localhost`.
+4. View service logs if needed:
+   ```bash
+   docker compose logs -f backend
+   ```
+
+### Option B: Running Services Individually (Development Mode)
+
+If you wish to make changes with hot reloading:
+
+#### Step 1: Start the Database Container
 Launch the PostgreSQL service inside the root directory:
 ```bash
-docker compose up -d
+docker compose up postgres -d
 ```
-*Note: The database is configured to run on port `5433` to prevent conflicts with other projects running PostgreSQL on standard port `5432`.*
+*Note: The database runs on port `5433` locally to prevent conflicts with standard port `5432`.*
 
----
-
-### Step 2: Start the NestJS Backend API
+#### Step 2: Start the NestJS Backend API
 1. Navigate into the `backend` folder:
    ```bash
    cd backend
    ```
-2. Install packages (already installed in workspace):
+2. Install packages and boot the server in dev mode:
    ```bash
    npm install
+   npm run start:dev
    ```
-3. Boot the backend server:
-   ```bash
-   npm run start
-   ```
-   *The server runs on `http://localhost:3000`. On boot, the server will check the database and automatically seed all demo clinic data if empty.*
+   *The API runs on `http://localhost:3000` with auto-migration and seeding on startup.*
 
----
-
-### Step 3: Start the React Frontend App
+#### Step 3: Start the React Frontend App
 1. Open a new terminal session and navigate into the `frontend` folder:
    ```bash
    cd frontend
    ```
-2. Install packages (already installed in workspace):
+2. Install packages and launch the development server:
    ```bash
    npm install
-   ```
-3. Launch the development server:
-   ```bash
    npm run dev
    ```
    *The client app runs on `http://localhost:5173`.*
 
 ---
 
+## Production Cloud Deployment Guide
+
+To deploy Smile Saviours to a cloud environment:
+
+### 1. Deploying on a Virtual Private Server (VPS) via Docker
+A VPS deployment is the most straightforward way to use the existing `docker-compose.yml`:
+1. Copy the project repository to your VPS (e.g. DigitalOcean, Linode, AWS EC2).
+2. Install Docker and Docker Compose on the VPS.
+3. Configure your production environment variables (e.g., secure `JWT_SECRET` and Postgres passwords) in the `docker-compose.yml` or an `.env` file.
+4. Run:
+   ```bash
+   docker compose up --build -d
+   ```
+5. Point your domain DNS to the VPS IP address. The built-in Nginx proxy handles incoming traffic on port `80`.
+
+### 2. Deploying on PaaS Providers (Railway, Render, etc.)
+If you prefer serverless or managed container hosting:
+
+#### Backend Service (NestJS + PostgreSQL)
+- **Database**: Spin up a managed PostgreSQL instance on Render/Railway.
+- **API Server**: Deploy the `backend` folder as a Web Service.
+  - Set the Build Command/Dockerfile path to `backend/Dockerfile`.
+  - Add Environment Variables: `DATABASE_URL` (pointing to your managed database connection string), `JWT_SECRET`, and `PORT` (usually `3000`).
+
+#### Frontend Service (React SPA)
+- **Static Hosting**: Deploy the `frontend` folder as a Static Site on Vercel, Netlify, or Render.
+  - Build Command: `npm run build`
+  - Output Directory: `dist`
+  - Environment Variables: Set `VITE_API_URL` to your backend service's public URL (e.g., `https://api.smilesaviours.com`).
+
+---
+
 ## Demo Credentials & Roles
 
-Once you load `http://localhost:5173`, use these pre-seeded accounts to experience **Role-Based Access Control (RBAC)** (Password is **`password`** for all):
+Once you load the app, use these pre-seeded accounts to experience **Role-Based Access Control (RBAC)** (Password is **`password`** for all):
 
 | Role | Email | Permissions / Features |
 | :--- | :--- | :--- |

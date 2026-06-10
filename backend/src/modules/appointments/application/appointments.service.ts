@@ -19,6 +19,16 @@ export class AppointmentsService {
       throw new BadRequestException('End time must be after start time');
     }
 
+    const hasOverlap = await this.appointmentsRepository.checkOverlap(
+      tenantId,
+      createDto.dentistId,
+      start,
+      end,
+    );
+    if (hasOverlap) {
+      throw new BadRequestException('This dentist already has an overlapping appointment scheduled.');
+    }
+
     return this.appointmentsRepository.create({
       tenantId,
       patientId: createDto.patientId,
@@ -46,24 +56,34 @@ export class AppointmentsService {
   }
 
   async update(tenantId: string, id: string, updateDto: UpdateAppointmentDto): Promise<Appointment> {
-    await this.findById(tenantId, id);
+    const current = await this.findById(tenantId, id);
 
     const updateData: any = {};
     if (updateDto.dentistId) updateData.dentistId = updateDto.dentistId;
     if (updateDto.reason) updateData.reason = updateDto.reason;
     if (updateDto.notes !== undefined) updateData.notes = updateDto.notes;
 
-    if (updateDto.startTime || updateDto.endTime) {
-      const current = await this.findById(tenantId, id);
-      const start = updateDto.startTime ? new Date(updateDto.startTime) : current.startTime;
-      const end = updateDto.endTime ? new Date(updateDto.endTime) : current.endTime;
+    const start = updateDto.startTime ? new Date(updateDto.startTime) : current.startTime;
+    const end = updateDto.endTime ? new Date(updateDto.endTime) : current.endTime;
 
+    if (updateDto.startTime || updateDto.endTime) {
       if (end <= start) {
         throw new BadRequestException('End time must be after start time');
       }
-
       updateData.startTime = start;
       updateData.endTime = end;
+    }
+
+    const checkDentist = updateDto.dentistId || current.dentistId;
+    const hasOverlap = await this.appointmentsRepository.checkOverlap(
+      tenantId,
+      checkDentist,
+      start,
+      end,
+      id,
+    );
+    if (hasOverlap) {
+      throw new BadRequestException('This dentist already has an overlapping appointment scheduled.');
     }
 
     return this.appointmentsRepository.update(tenantId, id, updateData);

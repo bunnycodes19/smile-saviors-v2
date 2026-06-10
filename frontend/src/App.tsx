@@ -5,10 +5,11 @@ import { Dashboard } from './pages/Dashboard';
 import { Patients } from './pages/Patients';
 import { Appointments } from './pages/Appointments';
 import { Billing } from './pages/Billing';
+import { Staff } from './pages/Staff';
 import './styles/theme.css';
-import { LayoutDashboard, Users, Calendar, Receipt, LogOut, Stethoscope } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Receipt, LogOut, Stethoscope, UserCheck } from 'lucide-react';
 
-type ActivePage = 'dashboard' | 'patients' | 'appointments' | 'billing';
+type ActivePage = 'dashboard' | 'patients' | 'appointments' | 'billing' | 'staff';
 
 const MainAppContent: React.FC = () => {
   const { user, tenantName, logout } = useAuth();
@@ -22,6 +23,8 @@ const MainAppContent: React.FC = () => {
         return <Appointments />;
       case 'billing':
         return <Billing />;
+      case 'staff':
+        return <Staff />;
       default:
         return <Dashboard />;
     }
@@ -88,6 +91,15 @@ const MainAppContent: React.FC = () => {
               <Receipt size={20} />
               <span>Billing</span>
             </li>
+            {user?.role === 'ADMIN' && (
+              <li
+                className={`sidebar-item ${activePage === 'staff' ? 'active' : ''}`}
+                onClick={() => setActivePage('staff')}
+              >
+                <UserCheck size={20} />
+                <span>Staff Management</span>
+              </li>
+            )}
           </nav>
         </div>
 

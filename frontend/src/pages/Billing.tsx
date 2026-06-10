@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../api';
-import { Plus, Receipt, CreditCard, ChevronRight } from 'lucide-react';
+import { Plus, Receipt, CreditCard, ChevronRight, Search, Printer } from 'lucide-react';
 
 interface Invoice {
   id: string;
@@ -69,6 +69,10 @@ export const Billing: React.FC = () => {
   // Payment registration states
   const [paymentAmount, setPaymentAmount] = useState('');
 
+  // Search and filter states
+  const [searchText, setSearchText] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+
   const fetchInvoices = async () => {
     try {
       const data = await apiRequest('/billing/invoices');
@@ -82,6 +86,15 @@ export const Billing: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const filteredInvoices = invoices.filter((inv) => {
+    const nameMatch = `${inv.patientFirstName} ${inv.patientLastName}`
+      .toLowerCase()
+      .includes(searchText.toLowerCase());
+    
+    if (statusFilter === 'ALL') return nameMatch;
+    return nameMatch && inv.status === statusFilter;
+  });
 
   useEffect(() => {
     fetchInvoices();
@@ -207,15 +220,42 @@ export const Billing: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '24px', alignItems: 'start' }}>
         {/* Invoice List */}
         <div className="card" style={{ padding: '0px' }}>
-          <div style={{ padding: '24px', borderBottom: '1px solid var(--panel-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Receipt size={20} style={{ color: 'var(--color-primary)' }} />
-            <span style={{ fontWeight: 600, fontSize: '18px' }}>Clinic Invoices</span>
+          <div style={{ padding: '24px', borderBottom: '1px solid var(--panel-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Receipt size={20} style={{ color: 'var(--color-primary)' }} />
+              <span style={{ fontWeight: 600, fontSize: '18px' }}>Clinic Invoices</span>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '10px', flexGrow: 1, justifyContent: 'flex-end', maxWidth: '450px' }}>
+              <div style={{ position: 'relative', flexGrow: 1 }}>
+                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                <input
+                  type="text"
+                  placeholder="Search patient..."
+                  className="form-input"
+                  style={{ paddingLeft: '36px', height: '36px', fontSize: '13px', paddingTop: '0', paddingBottom: '0' }}
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                />
+              </div>
+              <select
+                className="form-input"
+                style={{ width: '130px', height: '36px', fontSize: '13px', padding: '0 10px' }}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="PAID">Paid</option>
+                <option value="PARTIALLY_PAID">Partially Paid</option>
+                <option value="UNPAID">Unpaid</option>
+              </select>
+            </div>
           </div>
 
           {loading ? (
             <p style={{ padding: '24px', color: 'var(--text-secondary)' }}>Loading invoices...</p>
-          ) : invoices.length === 0 ? (
-            <p style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>No invoices issued yet.</p>
+          ) : filteredInvoices.length === 0 ? (
+            <p style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>No matching invoices found.</p>
           ) : (
             <div className="table-container">
               <table className="table">
@@ -231,7 +271,7 @@ export const Billing: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {invoices.map((inv) => (
+                  {filteredInvoices.map((inv) => (
                     <tr
                       key={inv.id}
                       onClick={() => handleInvoiceClick(inv.id)}
@@ -258,7 +298,7 @@ export const Billing: React.FC = () => {
         {/* Invoice Preview & Payment Actions */}
         <div>
           {selectedInvoice ? (
-            <div className="card">
+            <div className="card printable-invoice">
               <h2 className="card-title">Receipt Breakdown</h2>
               <div style={{ borderBottom: '1px solid var(--panel-border)', paddingBottom: '16px', marginBottom: '16px' }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Invoice ID</p>
@@ -313,12 +353,18 @@ export const Billing: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              {selectedInvoice.invoice.status !== 'PAID' && (
-                <button onClick={() => setShowPaymentModal(true)} className="btn btn-primary" style={{ width: '100%' }}>
-                  <CreditCard size={16} />
-                  Record Payment
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                {selectedInvoice.invoice.status !== 'PAID' && (
+                  <button onClick={() => setShowPaymentModal(true)} className="btn btn-primary" style={{ width: '100%' }}>
+                    <CreditCard size={16} />
+                    Record Payment
+                  </button>
+                )}
+                <button onClick={() => window.print()} className="btn btn-secondary" style={{ width: '100%' }}>
+                  <Printer size={16} />
+                  Print Invoice
                 </button>
-              )}
+              </div>
             </div>
           ) : (
             <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>

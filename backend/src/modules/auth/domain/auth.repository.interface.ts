@@ -15,4 +15,6 @@ export interface IAuthRepository {
   findByEmail(email: string): Promise<User | null>;
   findTenantById(id: string): Promise<Tenant | null>;
   findTenantBySubdomain(subdomain: string): Promise<Tenant | null>;
+  findUsersByTenant(tenantId: string): Promise<User[]>;
+  findUsersByRoleAndTenant(tenantId: string, role: 'ADMIN' | 'DENTIST' | 'RECEPTIONIST'): Promise<User[]>;
 }

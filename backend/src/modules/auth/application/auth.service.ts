@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { IAuthRepository } from '../domain/auth.repository.interface';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { CreateStaffDto } from './dto/create-staff.dto';
 import { User } from '../domain/user.entity';
 import { Tenant } from '../domain/tenant.entity';
 
@@ -90,5 +91,44 @@ export class AuthService {
       user: userWithoutPassword,
       tenantName: tenant ? tenant.name : '',
     };
+  }
+
+  async createStaff(tenantId: string, createStaffDto: CreateStaffDto): Promise<Omit<User, 'passwordHash'>> {
+    const existingUser = await this.authRepository.findByEmail(createStaffDto.email);
+    if (existingUser) {
+      throw new ConflictException('Email is already registered');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(createStaffDto.password, salt);
+
+    const user = await this.authRepository.createUser(
+      tenantId,
+      createStaffDto.email,
+      passwordHash,
+      createStaffDto.firstName,
+      createStaffDto.lastName,
+      createStaffDto.role,
+      createStaffDto.phone,
+    );
+
+    const { passwordHash: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
+
+  async getStaff(tenantId: string): Promise<Omit<User, 'passwordHash'>[]> {
+    const users = await this.authRepository.findUsersByTenant(tenantId);
+    return users.map((user) => {
+      const { passwordHash: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
+  }
+
+  async getDentists(tenantId: string): Promise<Omit<User, 'passwordHash'>[]> {
+    const users = await this.authRepository.findUsersByRoleAndTenant(tenantId, 'DENTIST');
+    return users.map((user) => {
+      const { passwordHash: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
   }
 }

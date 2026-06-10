@@ -14,4 +14,11 @@ export interface IAppointmentsRepository {
     id: string,
     status: 'SCHEDULED' | 'CHECKED_IN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED',
   ): Promise<Appointment>;
+  checkOverlap(
+    tenantId: string,
+    dentistId: string,
+    startTime: Date,
+    endTime: Date,
+    excludeId?: string,
+  ): Promise<boolean>;
 }

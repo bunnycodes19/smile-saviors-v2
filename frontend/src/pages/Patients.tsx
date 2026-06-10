@@ -153,7 +153,7 @@ export const Patients: React.FC = () => {
 
       setTreatments((prev) => [...prev, newTreatment]);
       setShowLogTreatmentModal(false);
-      setTreatmentNotes('');
+      resetTreatmentForm();
     } catch (err: any) {
       setError(err.message || 'Failed to log treatment');
     }
@@ -167,6 +167,19 @@ export const Patients: React.FC = () => {
     else if (val === 'Root Canal treatment') setTreatmentPrice('800.00');
     else if (val === 'Tooth Extraction') setTreatmentPrice('250.00');
     else if (val === 'Dental Crown') setTreatmentPrice('1200.00');
+  };
+
+  const resetTreatmentForm = () => {
+    setProcedureName('Routine Cleaning');
+    setTreatmentPrice('150.00');
+    setTreatmentNotes('');
+    setTreatmentStatus('COMPLETED');
+    setError('');
+  };
+
+  const openLogTreatmentModal = () => {
+    resetTreatmentForm();
+    setShowLogTreatmentModal(true);
   };
 
   // Define dental arch teeth mapping (1 to 16 for upper, 17 to 32 for lower)
@@ -351,48 +364,69 @@ export const Patients: React.FC = () => {
               {/* Treatment log */}
               <div className="card">
                 <div className="card-title">
-                  <span>Treatment & Dental Log</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span>Treatment & Dental Log</span>
+                    {selectedTooth && (
+                      <span
+                        className="badge badge-info"
+                        style={{ cursor: 'pointer', textTransform: 'none', fontSize: '11px', padding: '3px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        onClick={() => setSelectedTooth(null)}
+                      >
+                        Tooth #{selectedTooth} Filter Active (Clear)
+                      </span>
+                    )}
+                  </div>
                   {(user?.role === 'ADMIN' || user?.role === 'DENTIST') && (
-                    <button onClick={() => setShowLogTreatmentModal(true)} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '13px' }}>
+                    <button onClick={openLogTreatmentModal} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '13px' }}>
                       <Plus size={14} /> Log Procedure
                     </button>
                   )}
                 </div>
 
-                {treatments.length === 0 ? (
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>No procedures logged yet.</p>
-                ) : (
-                  <div className="table-container">
-                    <table className="table">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Tooth #</th>
-                          <th>Procedure</th>
-                          <th>Status</th>
-                          <th>Cost</th>
-                          <th>Notes</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {treatments.map((t) => (
-                          <tr key={t.id}>
-                            <td>{new Date(t.createdAt).toLocaleDateString()}</td>
-                            <td>{t.toothNumber || 'General'}</td>
-                            <td>{t.procedureName}</td>
-                            <td>
-                              <span className={`badge ${t.status === 'COMPLETED' ? 'badge-success' : 'badge-warning'}`}>
-                                {t.status}
-                              </span>
-                            </td>
-                            <td>${t.price}</td>
-                            <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{t.notes || '-'}</td>
+                {(() => {
+                  const filteredTreatments = selectedTooth 
+                    ? treatments.filter(t => t.toothNumber === selectedTooth) 
+                    : treatments;
+                  
+                  return filteredTreatments.length === 0 ? (
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
+                      {selectedTooth 
+                        ? `No procedures logged for Tooth #${selectedTooth} yet.` 
+                        : 'No procedures logged yet.'}
+                    </p>
+                  ) : (
+                    <div className="table-container">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Tooth #</th>
+                            <th>Procedure</th>
+                            <th>Status</th>
+                            <th>Cost</th>
+                            <th>Notes</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                        </thead>
+                        <tbody>
+                          {filteredTreatments.map((t) => (
+                            <tr key={t.id}>
+                              <td>{new Date(t.createdAt).toLocaleDateString()}</td>
+                              <td>{t.toothNumber ? `Tooth #${t.toothNumber}` : 'General'}</td>
+                              <td>{t.procedureName}</td>
+                              <td>
+                                <span className={`badge ${t.status === 'COMPLETED' ? 'badge-success' : 'badge-warning'}`}>
+                                  {t.status}
+                                </span>
+                              </td>
+                              <td>${t.price}</td>
+                              <td style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{t.notes || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           ) : (
@@ -526,7 +560,7 @@ export const Patients: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                <button type="button" onClick={() => setShowLogTreatmentModal(false)} className="btn btn-secondary">Cancel</button>
+                <button type="button" onClick={() => { setShowLogTreatmentModal(false); resetTreatmentForm(); }} className="btn btn-secondary">Cancel</button>
                 <button type="submit" className="btn btn-primary">Log Procedure</button>
               </div>
             </form>
