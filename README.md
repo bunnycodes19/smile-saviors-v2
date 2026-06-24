@@ -52,7 +52,7 @@ Launch the PostgreSQL service inside the root directory:
 ```bash
 docker compose up postgres -d
 ```
-*Note: The database runs on port `5433` locally to prevent conflicts with standard port `5432`.*
+*Note: The database runs on port `45433` locally to prevent conflicts with standard port `5432`.*
 
 #### Step 2: Start the NestJS Backend API
 1. Navigate into the `backend` folder:
@@ -64,7 +64,7 @@ docker compose up postgres -d
    npm install
    npm run start:dev
    ```
-   *The API runs on `http://localhost:3000` with auto-migration and seeding on startup.*
+   *The API runs on `http://localhost:43000` with auto-migration and seeding on startup.*
 
 #### Step 3: Start the React Frontend App
 1. Open a new terminal session and navigate into the `frontend` folder:
@@ -76,7 +76,7 @@ docker compose up postgres -d
    npm install
    npm run dev
    ```
-   *The client app runs on `http://localhost:5173`.*
+   *The client app runs on `http://localhost:45173`.*
 
 ---
 

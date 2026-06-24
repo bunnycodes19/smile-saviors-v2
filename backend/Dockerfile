@@ -15,6 +15,6 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
 
 ENV NODE_ENV=production
-EXPOSE 3000
+EXPOSE 43000
 
 CMD ["node", "dist/main"]

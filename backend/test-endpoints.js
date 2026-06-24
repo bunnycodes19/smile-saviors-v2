@@ -1,5 +1,5 @@
 async function runTests() {
-  const baseUrl = 'http://localhost:3000/api';
+  const baseUrl = 'http://localhost:43000/api';
   console.log('🚀 Starting integration tests for Smile Saviours REST APIs...');
 
   try {

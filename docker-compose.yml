@@ -3,7 +3,7 @@ services:
     image: postgres:16-alpine
     container_name: smile_saviors_db
     ports:
-      - "5433:5432"
+      - "45433:5432"
     environment:
       POSTGRES_DB: smile_saviors_db
       POSTGRES_USER: postgres
@@ -28,9 +28,9 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/smile_saviors_db
       JWT_SECRET: super-secret-smile-saviors-key-2026
-      PORT: 3000
+      PORT: 43000
     ports:
-      - "3000:3000"
+      - "43000:43000"
     restart: always
 
   frontend:

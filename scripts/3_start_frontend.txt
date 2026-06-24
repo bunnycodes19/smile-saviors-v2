@@ -1,0 +1,2 @@
+cd "c:\Users\FSSAI\Desktop\bunnycodes\smile_saviors\frontend"
+npm run dev

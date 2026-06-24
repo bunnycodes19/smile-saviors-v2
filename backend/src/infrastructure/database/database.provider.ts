@@ -10,7 +10,7 @@ export type NestDrizzleDatabase = NodePgDatabase<typeof schema>;
 export const DatabaseProvider: Provider = {
   provide: DRIZZLE_PROVIDER,
   useFactory: () => {
-    const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/smile_saviors_db';
+    const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:45433/smile_saviors_db';
     const pool = new Pool({
       connectionString,
     });

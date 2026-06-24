@@ -43,7 +43,7 @@ async function bootstrap() {
     console.error('Failed to run database migrations/seeder:', error);
   }
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 43000;
   await app.listen(port);
   console.log(`Smile Saviours API listening on port ${port}...`);
 }
