@@ -6,9 +6,13 @@ import { DRIZZLE_PROVIDER, NestDrizzleDatabase } from './infrastructure/database
 import { seedDatabase } from './infrastructure/database/seeder';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import * as path from 'path';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Serve static files from the uploads directory
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // Enable CORS for frontend requests
   app.enableCors({

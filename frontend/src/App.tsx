@@ -1,34 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Auth } from './pages/Auth';
 import { Dashboard } from './pages/Dashboard';
 import { Patients } from './pages/Patients';
+import { PatientDetailPage } from './pages/PatientDetailPage';
 import { Appointments } from './pages/Appointments';
 import { Billing } from './pages/Billing';
 import { Staff } from './pages/Staff';
+import { RecallDashboard } from './pages/RecallDashboard';
+import { InventoryPage } from './pages/InventoryPage';
+import { LabOrdersPage } from './pages/LabOrdersPage';
+import { ClinicSettingsPage } from './pages/ClinicSettingsPage';
 import './styles/theme.css';
-import { LayoutDashboard, Users, Calendar, Receipt, LogOut, Stethoscope, UserCheck } from 'lucide-react';
-
-type ActivePage = 'dashboard' | 'patients' | 'appointments' | 'billing' | 'staff';
+import { LayoutDashboard, Users, Calendar, Receipt, LogOut, Stethoscope, UserCheck, Bell, Package, Clipboard, Settings } from 'lucide-react';
 
 const MainAppContent: React.FC = () => {
   const { user, tenantName, logout } = useAuth();
-  const [activePage, setActivePage] = useState<ActivePage>('dashboard');
-
-  const renderActivePage = () => {
-    switch (activePage) {
-      case 'patients':
-        return <Patients />;
-      case 'appointments':
-        return <Appointments />;
-      case 'billing':
-        return <Billing />;
-      case 'staff':
-        return <Staff />;
-      default:
-        return <Dashboard />;
-    }
-  };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -63,42 +51,70 @@ const MainAppContent: React.FC = () => {
           </div>
 
           <nav className="sidebar-menu">
-            <li
-              className={`sidebar-item ${activePage === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActivePage('dashboard')}
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
             >
               <LayoutDashboard size={20} />
               <span>Dashboard</span>
-            </li>
-            <li
-              className={`sidebar-item ${activePage === 'patients' ? 'active' : ''}`}
-              onClick={() => setActivePage('patients')}
+            </NavLink>
+            <NavLink
+              to="/patients"
+              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
             >
               <Users size={20} />
               <span>Patients</span>
-            </li>
-            <li
-              className={`sidebar-item ${activePage === 'appointments' ? 'active' : ''}`}
-              onClick={() => setActivePage('appointments')}
+            </NavLink>
+            <NavLink
+              to="/appointments"
+              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
             >
               <Calendar size={20} />
               <span>Appointments</span>
-            </li>
-            <li
-              className={`sidebar-item ${activePage === 'billing' ? 'active' : ''}`}
-              onClick={() => setActivePage('billing')}
+            </NavLink>
+            <NavLink
+              to="/billing"
+              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
             >
               <Receipt size={20} />
               <span>Billing</span>
-            </li>
+            </NavLink>
+            <NavLink
+              to="/recalls"
+              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+            >
+              <Bell size={20} />
+              <span>Recalls</span>
+            </NavLink>
+            <NavLink
+              to="/inventory"
+              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+            >
+              <Package size={20} />
+              <span>Inventory</span>
+            </NavLink>
+            <NavLink
+              to="/lab-orders"
+              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+            >
+              <Clipboard size={20} />
+              <span>Lab Orders</span>
+            </NavLink>
+            <NavLink
+              to="/settings"
+              className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+            >
+              <Settings size={20} />
+              <span>Settings</span>
+            </NavLink>
             {user?.role === 'ADMIN' && (
-              <li
-                className={`sidebar-item ${activePage === 'staff' ? 'active' : ''}`}
-                onClick={() => setActivePage('staff')}
+              <NavLink
+                to="/staff"
+                className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
               >
                 <UserCheck size={20} />
                 <span>Staff Management</span>
-              </li>
+              </NavLink>
             )}
           </nav>
         </div>
@@ -134,7 +150,23 @@ const MainAppContent: React.FC = () => {
 
       {/* Main Content View */}
       <main className="main-content">
-        {renderActivePage()}
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/patients" element={<Patients />} />
+          <Route path="/patients/:id" element={<PatientDetailPage />} />
+          <Route path="/appointments" element={<Appointments />} />
+          <Route path="/billing" element={<Billing />} />
+          <Route path="/recalls" element={<RecallDashboard />} />
+          <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/lab-orders" element={<LabOrdersPage />} />
+          <Route path="/settings" element={<ClinicSettingsPage />} />
+          {user?.role === 'ADMIN' ? (
+            <Route path="/staff" element={<Staff />} />
+          ) : (
+            <Route path="/staff" element={<Navigate to="/dashboard" replace />} />
+          )}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
       </main>
     </div>
   );
@@ -143,7 +175,9 @@ const MainAppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <AuthConsumer />
+      <BrowserRouter>
+        <AuthConsumer />
+      </BrowserRouter>
     </AuthProvider>
   );
 };

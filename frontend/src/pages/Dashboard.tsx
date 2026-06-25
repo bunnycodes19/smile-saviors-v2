@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { Users, Calendar, DollarSign, FileText } from 'lucide-react';
+import { Users, Calendar, DollarSign, FileText, AlertTriangle, Bell } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface StatData {
   totalPatients: number;
@@ -24,7 +25,10 @@ interface StatData {
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState<StatData | null>(null);
+  const [overdueSchedules, setOverdueSchedules] = useState<any[]>([]);
+  const [dueThisWeekSchedules, setDueThisWeekSchedules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -37,8 +41,14 @@ export const Dashboard: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const stats = await apiRequest('/dashboard/stats');
+      const [stats, overdue, dueThisWeek] = await Promise.all([
+        apiRequest('/dashboard/stats'),
+        apiRequest('/recalls/schedules?overdue=true'),
+        apiRequest('/recalls/schedules?dueThisWeek=true'),
+      ]);
       setData(stats);
+      setOverdueSchedules(overdue || []);
+      setDueThisWeekSchedules(dueThisWeek || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard metrics');
     } finally {
@@ -74,6 +84,23 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div>
+      {overdueSchedules.length > 0 && (
+        <div className="alert alert-danger animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', padding: '16px 20px', borderRadius: 'var(--radius-md)', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', backdropFilter: 'blur(20px)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <AlertTriangle style={{ color: 'var(--color-danger)' }} size={24} />
+            <div>
+              <span style={{ fontWeight: 600, color: '#fff' }}>Attention Required:</span>
+              <span style={{ color: 'var(--text-secondary)', marginLeft: '6px' }}>
+                You have {overdueSchedules.length} patient recall{overdueSchedules.length > 1 ? 's' : ''} overdue. Please review and send reminders.
+              </span>
+            </div>
+          </div>
+          <button onClick={() => navigate('/recalls')} className="btn btn-secondary btn-sm" style={{ padding: '6px 12px', fontSize: '13px' }}>
+            View Recalls
+          </button>
+        </div>
+      )}
+
       <div className="dashboard-hero">
         <div className="hero-content">
           <h1>{getGreeting()}, {user?.firstName || 'Staff'}!</h1>
@@ -120,6 +147,26 @@ export const Dashboard: React.FC = () => {
           <div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Outstanding Balance</div>
             <div className="stat-value">${data.outstandingBills}</div>
+          </div>
+        </div>
+
+        <div className="stat-card" onClick={() => navigate('/recalls')} style={{ cursor: 'pointer' }}>
+          <div className="stat-icon" style={{ color: 'var(--color-danger)' }}>
+            <AlertTriangle size={24} />
+          </div>
+          <div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Overdue Recalls</div>
+            <div className="stat-value">{overdueSchedules.length}</div>
+          </div>
+        </div>
+
+        <div className="stat-card" onClick={() => navigate('/recalls')} style={{ cursor: 'pointer' }}>
+          <div className="stat-icon" style={{ color: 'var(--color-warning)' }}>
+            <Bell size={24} />
+          </div>
+          <div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Due This Week</div>
+            <div className="stat-value">{dueThisWeekSchedules.length}</div>
           </div>
         </div>
       </div>

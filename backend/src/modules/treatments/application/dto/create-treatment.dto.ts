@@ -27,6 +27,34 @@ export class CreateTreatmentDto {
   price: string;
 
   @IsNotEmpty()
-  @IsEnum(['PLANNED', 'COMPLETED'])
-  status: 'PLANNED' | 'COMPLETED';
+  @IsEnum(['PROPOSED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'PLANNED'])
+  status: string;
+
+  @IsOptional()
+  @IsString()
+  chiefComplaint?: string;
+
+  @IsOptional()
+  @IsString()
+  symptoms?: string;
+
+  @IsOptional()
+  @IsString()
+  diagnosis?: string;
+
+  @IsOptional()
+  @IsString()
+  followUpInstructions?: string;
+
+  @IsOptional()
+  @IsString()
+  clinicalNotes?: string;
+
+  @IsOptional()
+  @IsString()
+  estimatedCost?: string;
+
+  @IsOptional()
+  @IsUUID()
+  treatmentGroupId?: string;
 }
