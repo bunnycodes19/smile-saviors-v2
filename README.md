@@ -26,7 +26,7 @@ Ensure you have the following installed on your machine:
 
 ## Running the Application
 
-There are two ways to run the application locally: using Docker Compose (simplest, production-like), or running services individually (ideal for development).
+There are two ways to run the application locally: using Docker Compose (simplest, containerized), or running services individually (ideal for development).
 
 ### Option A: Using Docker Compose (Single-Command Run)
 
@@ -80,7 +80,7 @@ docker compose up postgres -d
 
 ---
 
-## Production Cloud Deployment Guide
+## Cloud Deployment Guide
 
 To deploy Smile Saviours to a cloud environment:
 
@@ -112,15 +112,21 @@ If you prefer serverless or managed container hosting:
 
 ---
 
-## Demo Credentials & Roles
+## Demo Roles & Access
 
-Once you load the app, use these pre-seeded accounts to experience **Role-Based Access Control (RBAC)** (Password is **`password`** for all):
+The application comes with seeded demo data configured for **Role-Based Access Control (RBAC)**. Contact the administrator for demo access credentials. The following roles are supported:
 
-| Role | Email | Permissions / Features |
-| :--- | :--- | :--- |
-| **Clinic Admin** | `admin@smile.com` | Full access to patients, scheduling calendar, clinical procedure logs, and invoice billing. |
-| **Dentist** | `dentist@smile.com` | Clinical access. Can view patients, scheduled appointments, and **log new dental treatments** (with localized tooth charts). Restricted from configuration changes. |
-| **Receptionist** | `receptionist@smile.com` | Front-desk access. Can register patient profiles, schedule bookings in the calendar grid, and **issue invoices/record payments**. Cannot log clinical treatments. |
+| Role | Permissions / Features |
+| :--- | :--- |
+| **Clinic Admin** | Full access to patients, scheduling calendar, clinical procedure logs, and invoice billing. |
+| **Dentist** | Clinical access. Can view patients, scheduled appointments, and **log new dental treatments** (with localized tooth charts). Restricted from configuration changes. |
+| **Receptionist** | Front-desk access. Can register patient profiles, schedule bookings in the calendar grid, and **issue invoices/record payments**. Cannot log clinical treatments. |
+
+---
+
+## Data Handling & Privacy (PII/PHI)
+
+Smile Saviours is designed with the understanding that it handles sensitive **Personally Identifiable Information (PII)** and **Protected Health Information (PHI)**. Access is strictly scoped to the tenant layer, and robust role-based access control prevents unauthorized clinical data exposure.
 
 ---
 
